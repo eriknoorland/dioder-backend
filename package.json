@@ -1,0 +1,16 @@
+{
+  "name": "nodepi-remote-led",
+  "version": "0.0.1",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "author": "Erik Noorland",
+  "license": "",
+  "dependencies": {
+    "body-parser": "^1.10.0",
+    "express": "^4.10.4",
+    "redoid": "^0.1.3"
+  }
+}
