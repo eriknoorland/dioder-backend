@@ -39,6 +39,8 @@ io.on('connection', function(socket) {
 
     if(_state === State.ON) {
       redoid.transition(_colour, 250);
+    } else {
+      redoid.turnOff();
     }
 
     io.sockets.emit('toggleState', {
@@ -50,8 +52,6 @@ io.on('connection', function(socket) {
    * Colour change request handler
    */
   socket.on('colourChangeRequest', function(data) {
-    console.log('colourChangeRequest', data.colour);
-
     redoid.stop();
     redoid.transition(data.colour, 250);
 
