@@ -3,52 +3,102 @@
 (function() {
   'use strict';
 
+  var socket;
   var hueWheel;
+  var $hueWheel;
   var $toggleStateButton;
+  var $shutdownButton;
 
   /**
    * DOM ready
    */
   $(function() {
-    $toggleStateButton = $('#toggleOnOff');
-    $toggleStateButton.on('click', onToggleState);
+    socket = io.connect('pdc.local:8080');
 
-    $.ajax({
-      url: '/leds/state',
-      type: 'GET',
-      success: init
-    });
+    cacheSelectors();
+    bindEvents();
   });
 
   /**
    * Init
-   * @param {Object} response
+   * @param {Object} data
    */
-  function init(response) {
+  function init(data) {
+    var rgb = hexToByteArray(data.colour);
+
     hueWheel = new HueWheel('hueWheel', {
       changeSaturation: false,
       changeLightness: false,
       showColorSpot: false,
       diameter: 300,
       thicknessHue: 60,
-      hue: 200,
+      rgb: rgb,
       onChange: onHueWheelUpdate
     });
 
-    toggleStateButton(response.status === 'on');
+    onToggleState(data);
   }
 
   /**
-   * Handler for the on/off toggle button
+   * Bind handlers to events
    */
-  function onToggleState() {
-    $.ajax({
-      url: '/leds/toggle',
-      type: 'GET',
-      success: function(response) {
-        toggleStateButton(response.status === 'on');
-      }
-    });
+  function bindEvents() {
+    $toggleStateButton.on('click', onToggleStateButtonClick);
+    $shutdownButton.on('click', onShutdownButtonClick);
+
+    socket.on('connected', init);
+    socket.on('toggleState', onToggleState);
+    socket.on('colourChange', onColourChange);
+    socket.on('shutdown', onShutdown);
+  }
+
+  /**
+   * Cache jQuery selectors
+   */
+  function cacheSelectors() {
+    $hueWheel = $('#hueWheel');
+    $toggleStateButton = $('#toggleOnOff');
+    $shutdownButton = $('#shutdownPdc');
+  }
+
+  /**
+   * Handler for toggle state button click
+   */
+  function onToggleStateButtonClick() {
+    socket.emit('toggleStateRequest');
+  }
+
+  /**
+   * Handler for shutdown button click
+   */
+  function onShutdownButtonClick() {
+    socket.emit('shutdownRequest');
+  }
+
+  /**
+   * Handler for the colour changes on the server side
+   * @param {Object} data
+   */
+  function onColourChange(data) {
+
+  }
+
+  /**
+   * State toggle handler
+   * @param {Object} data
+   */
+  function onToggleState(data) {
+    $toggleStateButton.toggleClass('is-active', data.state === 'on');
+  }
+
+  /**
+   * Server shutdown handler
+   * @param {Object} data
+   */
+  function onShutdown(data) {
+    $hueWheel.css('opacity', 0.2);
+    $toggleStateButton.css('opacity', 0.2);
+    $shutdownButton.css('opacity', 0.2);
   }
 
   /**
@@ -57,23 +107,7 @@
    */
   function onHueWheelUpdate(event) {
     var colour = '#' + byteToHex(event.r) + byteToHex(event.g) + byteToHex(event.b);
-
-    $.ajax({
-      url: '/leds/colour',
-      type: 'POST',
-      data: {colour: colour},
-      success: function(response) {
-        toggleStateButton(response.status === 'on');
-      }
-    });
-  }
-
-  /**
-   * Toggles the state button
-   * @param {Boolean} toggle
-   */
-  function toggleStateButton(toggle) {
-    $toggleStateButton.toggleClass('is-active', toggle);
+    socket.emit('colourChangeRequest', {colour: colour});
   }
 
   /**
@@ -91,4 +125,31 @@
     return hex;
   }
 
+  /**
+   * Returns a bytes array for the given hex string (#0000ff)
+   * @param {String} hex
+   * @return {Array}
+   */
+  function hexToByteArray(hex) {
+    var bytes = [];
+    var hexes = [];
+
+    hex = hex.replace('#', '');
+    hexes = hex.match(/.{1,2}/g);
+
+    for(var i = 0, x = hexes.length; i < x; i++) {
+      bytes.push(hexToByte(hexes[i]));
+    }
+
+    return bytes;
+  }
+
+  /**
+   * Returns a single byte value for the given hex string (i.e. ff)
+   * @param {String} hex
+   * @return {int}
+   */
+  function hexToByte(hex) {
+    return parseInt(hex, 16);
+  }
 }());

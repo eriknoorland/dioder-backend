@@ -17,10 +17,21 @@
 
     <div class="buttonWrapper">
       <a id="toggleOnOff" class="button">
-        Turn <span class="labelOn">on</span><span class="labelOff">off</span>
+        <span class="label">
+          Turn
+          <span class="label--on">on</span>
+          <span class="label--off">off</span>
+        </span>
+      </a>
+
+      <a id="shutdownPdc" class="button">
+        <span class="label">
+          Shutdown PDC
+        </span>
       </a>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script src="/js/jquery-3.1.1.min.js"></script>
     <script src="/js/huewheel.min.js"></script>
     <script src="/js/main.js"></script>

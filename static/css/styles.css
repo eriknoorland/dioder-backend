@@ -47,8 +47,12 @@ body {
   box-shadow: #000 1px 1px 3px;
 }
 
-.button .labelOn { display: inline; }
-.button.is-active .labelOn { display: none; }
+.button .label {
+  pointer-events: none;
+}
 
-.button .labelOff { display: none; }
-.button.is-active .labelOff { display: inline; }
+.button .label--on { display: inline; }
+.button.is-active .label--on { display: none; }
+
+.button .label--off { display: none; }
+.button.is-active .label--off { display: inline; }

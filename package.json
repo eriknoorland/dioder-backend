@@ -1,7 +1,7 @@
 {
-  "name": "nodepi-remote-led",
+  "name": "Pikea-Dioder-Controller",
   "version": "0.0.1",
-  "description": "",
+  "description": "An Ikea hack to control a Dioder LED strip witha Raspberry Pi using NodeJS.",
   "main": "app.js",
   "scripts": {
     "start": "node ./bin/www"
@@ -14,6 +14,7 @@
     "redoid": "^0.1.3"
   },
   "devDependencies": {
-    "onoff": "~1.1.1"
+    "onoff": "~1.1.1",
+    "socket.io": "~1.6.0"
   }
 }
