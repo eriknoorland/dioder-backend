@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "onoff": "~1.1.1",
+    "shelljs": "^0.7.5",
     "socket.io": "~1.6.0"
   }
 }

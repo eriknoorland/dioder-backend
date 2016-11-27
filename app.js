@@ -1,4 +1,5 @@
 /* globals module, __dirname */
+require('shelljs/global');
 
 var http = require('http');
 var express = require('express');
@@ -75,10 +76,11 @@ io.on('connection', function(socket) {
     });
 
     // shelljs execute shutdown command
+    exec('sudo shutdown -h now');
   });
 });
 
-turn status LED on
+// turn status LED on
 led.writeSync(1);
 
 module.exports = server;
