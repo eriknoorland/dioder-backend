@@ -1,23 +1,23 @@
-/* globals HueWheel */
+/* globals io, HueWheel */
 
 (function() {
   'use strict';
 
   var socket;
   var hueWheel;
-  var $hueWheel;
-  var $toggleStateButton;
-  var $shutdownButton;
+  var toggleStateButton;
+  var shutdownButton;
+  var colourSelector;
 
   /**
-   * DOM ready
+   * Initialise
    */
-  $(function() {
+  function initialise() {
     socket = io.connect('pdc.local:8080');
 
     cacheSelectors();
     bindEvents();
-  });
+  }
 
   /**
    * Init
@@ -43,8 +43,8 @@
    * Bind handlers to events
    */
   function bindEvents() {
-    $toggleStateButton.on('click', onToggleStateButtonClick);
-    $shutdownButton.on('click', onShutdownButtonClick);
+    toggleStateButton.addEventListener('click', onToggleStateButtonClick);
+    shutdownButton.addEventListener('click', onShutdownButtonClick);
 
     socket.on('connected', init);
     socket.on('toggleState', onToggleState);
@@ -56,9 +56,9 @@
    * Cache jQuery selectors
    */
   function cacheSelectors() {
-    $hueWheel = $('#hueWheel');
-    $toggleStateButton = $('#toggleOnOff');
-    $shutdownButton = $('#shutdownPdc');
+    colourSelector = document.getElementById('hueWheel');
+    toggleStateButton = document.getElementById('toggleOnOff');
+    shutdownButton = document.getElementById('shutdownPdc');
   }
 
   /**
@@ -79,7 +79,7 @@
    * Handler for the colour changes on the server side
    * @param {Object} data
    */
-  function onColourChange(data) {
+  function onColourChange() {
 
   }
 
@@ -88,17 +88,20 @@
    * @param {Object} data
    */
   function onToggleState(data) {
-    $toggleStateButton.toggleClass('is-active', data.state === 'on');
+    toggleStateButton.classList.toggle('is-active', data.state === 'on');
   }
 
   /**
    * Server shutdown handler
    * @param {Object} data
    */
-  function onShutdown(data) {
-    $hueWheel.css('opacity', 0.2);
-    $toggleStateButton.css('opacity', 0.2);
-    $shutdownButton.css('opacity', 0.2);
+  function onShutdown() {
+    toggleStateButton.removeEventListener('click', onToggleStateButtonClick);
+    shutdownButton.removeEventListener('click', onShutdownButtonClick);
+
+    colourSelector.style.opacity = 0.2;
+    toggleStateButton.style.opacity = 0.2;
+    shutdownButton.style.opacity = 0.2;
   }
 
   /**
@@ -152,4 +155,9 @@
   function hexToByte(hex) {
     return parseInt(hex, 16);
   }
+
+  // LED's get this party started
+  window.onload = function() {
+    initialise();
+  };
 }());
