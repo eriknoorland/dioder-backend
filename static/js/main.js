@@ -5,6 +5,8 @@
 
   var socket;
   var hueWheel;
+  var whiteButton;
+  var transitionStartButton;
   var toggleStateButton;
   var shutdownButton;
   var colourSelector;
@@ -43,6 +45,8 @@
    * Bind handlers to events
    */
   function bindEvents() {
+    whiteButton.addEventListener('click', onWhiteButtonClick);
+    transitionStartButton.addEventListener('click', onTransitionStartClick);
     toggleStateButton.addEventListener('click', onToggleStateButtonClick);
     shutdownButton.addEventListener('click', onShutdownButtonClick);
 
@@ -57,8 +61,18 @@
    */
   function cacheSelectors() {
     colourSelector = document.getElementById('hueWheel');
+    whiteButton = document.getElementById('colourWhite');
+    transitionStartButton = document.getElementById('transitionStart');
     toggleStateButton = document.getElementById('toggleOnOff');
     shutdownButton = document.getElementById('shutdownPdc');
+  }
+
+  function onWhiteButtonClick() {
+    socket.emit('colourChangeRequest', {colour: '#ffffff'});
+  }
+
+  function onTransitionStartClick() {
+    socket.emit('colourTransitionRequest');
   }
 
   /**

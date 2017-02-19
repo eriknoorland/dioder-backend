@@ -37,9 +37,13 @@ io.on('connection', function(socket) {
   socket.on('toggleStateRequest', function() {
     _state = (_state === State.ON ? State.OFF : State.ON);
 
+    redoid.stop();
+    redoid.setLoopTransition(false);
+
     if(_state === State.ON) {
       redoid.transition(_colour, 250);
     } else {
+      _colour = redoid.getColorHexValue();
       redoid.turnOff();
     }
 
@@ -54,6 +58,7 @@ io.on('connection', function(socket) {
   socket.on('colourChangeRequest', function(data) {
     redoid.stop();
     redoid.transition(data.colour, 250);
+    redoid.setLoopTransition(false);
 
     _colour = data.colour;
     _state = State.ON;
@@ -67,10 +72,29 @@ io.on('connection', function(socket) {
     });
   });
 
+  socket.on('colourTransitionRequest', function() {
+    var delay = 4000;
+
+    redoid.stop();
+    redoid.setLoopTransition(true);
+    redoid.transition('#ff0000', delay);
+    redoid.transition('#00ff00', delay);
+    redoid.transition('#0000ff', delay);
+    redoid.transition('#ff00ff', delay);
+
+    _state = State.ON;
+
+    io.sockets.emit('toggleState', {
+      state: _state
+    });
+  });
+
   /**
    * Shutdown request handler
    */
   socket.on('shutdownRequest', function(data) {
+    redoid.stop();
+
     socket.emit('shutdown', {
       state: _state
     });
