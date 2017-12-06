@@ -1,16 +1,20 @@
 /* globals module, __dirname */
+
 // require('shelljs/global');
 
 var http = require('http');
 var express = require('express');
-var app = express();
-var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+var bodyParser = require('body-parser');
 
 // var Redoid = require('redoid');
-// var redoid = Redoid();
-
 // var Gpio = require('onoff').Gpio;
+
+var app = express();
+var server = http.createServer(app);
+
+// var io = require('socket.io').listen(server);
+
+// var redoid = Redoid();
 // var led = new Gpio(23, 'out');
 
 // var State = {
@@ -21,57 +25,105 @@ var io = require('socket.io').listen(server);
 // var _state = State.ON;
 // var _colour = '#0000ff';
 
+var transitionDuration = 250;
+var defaultColour = '00f';
+var favorites = ['f00', 'ff0', '0f0', '0ff', '00f'];
+
 app.use('/', express.static(__dirname + '/static'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/colour', function(request, response) {
-  console.log('return current colour');
+  response
+    .status(200)
+    .json({ data: '00f' }); // redoid.getColorHexValue()
 });
 
-app.put('/colour/:hex', function(request, response) {
-  console.log('updates current colour', request.params);
+app.post('/colour', function(request, response) {
+  var colour = request.body.colour;
+  // var isColorValid = redoid.isColorValid(colour);
+
+  // if (!isColorValid) {
+  //   return response
+  //     .status(422)
+  //     .json({
+  //       error: {
+  //         message: 'The provided colour is not valid',
+  //       },
+  //     });
+  // }
 
   // redoid.stop();
-  // redoid.transition(request.params.colour, 250);
+  // redoid.transition(colour, transitionDuration);
   // redoid.setLoopTransition(false);
+
+  response
+    .status(204)
+    .send();
 });
 
 app.get('/status', function(request, response) {
-  console.log('return current status');
+  response.status(200);
 });
 
-app.put('/status', function(request, response) {
-  console.log('updates current status', request.params);
+app.post('/status', function(request, response) {
+  response
+    .status(204)
+    .send();
 });
 
 app.get('/favorites', function(request, response) {
   response
     .status(200)
-    .json({ data: [
-      '#ff0000',
-      '#ffff00',
-      '#ffffff',
-      '#00ff00',
-      '#00ffff',
-      '#0000ff',
-    ]
-  });
+    .json({ data: favorites });
 });
 
 app.post('/favorites', function(request, response) {
-  console.log('add favorite', request.params);
+  var colour = request.body.colour;
+  var isFavorite = favorites.indexOf(colour) !== -1;
+
+  if (isFavorite) {
+    return response
+      .status(422)
+      .json({
+        error: {
+          message: 'The provided colour is already a favorite',
+        },
+      });
+  }
+
+  favorites.push(colour);
+  return response.status(201);
 });
 
-app.delete('/favorites/:hex', function(request, response) {
-  console.log('delete favorite', request.params);
+app.delete('/favorites/:colour', function(request, response) {
+  var colour = request.params.colour;
+  var index = favorites.indexOf(colour);
+  var isFavorite = index !== -1;
+
+  if (!isFavorite) {
+    return response
+      .status(404)
+      .json({
+        error: {
+          message: 'The provided colour was not a favorite',
+        },
+      });
+  }
+
+  favorites.splice(index, 1);
+  response
+    .status(204)
+    .send();
 });
 
 app.get('/shutdown', function(request, response) {
-  console.log('Shutdown server request');
-
   // redoid.stop();
   // exec('sudo shutdown -h now');
 
-  response.status(200);
+  response
+    .status(204)
+    .send();
 });
 
 // // open socket connection
