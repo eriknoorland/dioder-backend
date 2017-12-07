@@ -27,91 +27,19 @@ var server = http.createServer(app);
 
 var transitionDuration = 250;
 var defaultColour = '00f';
-var favorites = ['f00', 'ff0', '0f0', '0ff', '00f'];
 
-app.use('/', express.static(__dirname + '/static'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/colour', function(request, response) {
-  response
-    .status(200)
-    .json({ data: '00f' }); // redoid.getColorHexValue()
-});
-
-app.post('/colour', function(request, response) {
-  var colour = request.body.colour;
-  // var isColorValid = redoid.isColorValid(colour);
-
-  // if (!isColorValid) {
-  //   return response
-  //     .status(422)
-  //     .json({
-  //       error: {
-  //         message: 'The provided colour is not valid',
-  //       },
-  //     });
-  // }
-
-  // redoid.stop();
-  // redoid.transition(colour, transitionDuration);
-  // redoid.setLoopTransition(false);
-
-  response
-    .status(204)
-    .send();
-});
+app.use('/', express.static(__dirname + '/static'));
+app.use('/api/v1/favorites', require('./routes/v1/favorites'));
+app.use('/api/v1/colour', require('./routes/v1/colour'));
 
 app.get('/status', function(request, response) {
   response.status(200);
 });
 
 app.post('/status', function(request, response) {
-  response
-    .status(204)
-    .send();
-});
-
-app.get('/favorites', function(request, response) {
-  response
-    .status(200)
-    .json({ data: favorites });
-});
-
-app.post('/favorites', function(request, response) {
-  var colour = request.body.colour;
-  var isFavorite = favorites.indexOf(colour) !== -1;
-
-  if (isFavorite) {
-    return response
-      .status(422)
-      .json({
-        error: {
-          message: 'The provided colour is already a favorite',
-        },
-      });
-  }
-
-  favorites.push(colour);
-  return response.status(201);
-});
-
-app.delete('/favorites/:colour', function(request, response) {
-  var colour = request.params.colour;
-  var index = favorites.indexOf(colour);
-  var isFavorite = index !== -1;
-
-  if (!isFavorite) {
-    return response
-      .status(404)
-      .json({
-        error: {
-          message: 'The provided colour was not a favorite',
-        },
-      });
-  }
-
-  favorites.splice(index, 1);
   response
     .status(204)
     .send();
@@ -125,6 +53,11 @@ app.get('/shutdown', function(request, response) {
     .status(204)
     .send();
 });
+
+// turn status LED on
+// led.writeSync(1);
+
+module.exports = server;
 
 // // open socket connection
 // io.on('connection', function(socket) {
@@ -205,8 +138,3 @@ app.get('/shutdown', function(request, response) {
 //     exec('sudo shutdown -h now');
 //   });
 // });
-
-// turn status LED on
-// led.writeSync(1);
-
-module.exports = server;
