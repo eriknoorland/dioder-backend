@@ -1,24 +1,49 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-var router = express.Router();
-var urlencode = bodyParser.urlencoded({ extended: false });
+const router = express.Router();
+const urlencode = bodyParser.urlencoded({ extended: false });
 
-var favorites = ['f00', 'ff0', '0f0', '0ff', '00f'];
+const favorites = [
+  {
+    name: 'Red',
+    colour: [255, 0, 0],
+  },
+  {
+    name: '',
+    colour: [255, 255, 0],
+  },
+  {
+    name: 'Blue',
+    colour: [0, 255, 0],
+  },
+  {
+    name: '',
+    colour: [0, 255, 255],
+  },
+  {
+    name: 'Green',
+    colour: [0, 0, 255],
+  },
+  {
+    name: 'Purple',
+    colour: [255, 0, 255],
+  },
+];
 
 router.use(urlencode);
 router.use(bodyParser.json());
 
 router.route('/')
-  .get(function(request, response) {
+  .get((request, response) => {
     response
       .status(200)
       .json({ data: favorites });
   })
 
-  .post(function(request, response) {
-    var colour = request.body.colour;
-    var isFavorite = favorites.indexOf(colour) !== -1;
+  .post((request, response) => {
+    const colour = request.body.colour;
+    const isFavorite = favorites.indexOf(colour) !== -1;
 
     if (isFavorite) {
       return response
@@ -31,13 +56,16 @@ router.route('/')
     }
 
     favorites.push(colour);
-    response.status(201).send();
+    
+    response
+      .status(201)
+      .send();
   })
 
-  .delete(function(request, response) {
-    var colour = request.params.colour;
-    var index = favorites.indexOf(colour);
-    var isFavorite = index !== -1;
+  .delete((request, response) => {
+    const colour = request.params.colour;
+    const index = favorites.indexOf(colour);
+    const isFavorite = index !== -1;
 
     if (!isFavorite) {
       return response

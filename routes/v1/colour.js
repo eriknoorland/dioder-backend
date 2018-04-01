@@ -1,38 +1,66 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-// var Redoid = require('redoid');
+const mqtt = require('mqtt');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-var router = express.Router();
-var urlencode = bodyParser.urlencoded({ extended: false });
-// var redoid = Redoid();
+const router = express.Router();
+const urlencode = bodyParser.urlencoded({ extended: false });
+const mqttClient  = mqtt.connect('mqtt://skynet.local:1881');
+
+let isMqttConnected = false;
+ 
+mqttClient.on('connect', () => {
+  isMqttConnected = true;
+});
+ 
+mqttClient.on('message', (topic, message) => {
+  // message is Buffer
+  // console.log(message.toString());
+  // mqttClient.end();
+});
 
 router.use(urlencode);
 router.use(bodyParser.json());
 
 router.route('/')
-  .get(function(request, response) {
-    response
-      .status(200)
-      .json({ data: '00f' }); // redoid.getColorHexValue()
-  })
+  .post((request, response) => {
+    const colour = JSON.parse(request.body.colour);
+    let isColorValid = true;
 
-  .post(function(request, response) {
-    var colour = request.body.colour;
-    // var isColorValid = redoid.isColorValid(colour);
+    if (!Array.isArray(colour)) {
+      isColorValid = false;
+    }
 
-    // if (!isColorValid) {
-    //   return response
-    //     .status(422)
-    //     .json({
-    //       error: {
-    //         message: 'The provided colour is not valid',
-    //       },
-    //     });
-    // }
+    if (colour.length !== 3) {
+      isColorValid = false;
+    }
 
-    // redoid.stop();
-    // redoid.transition(colour, transitionDuration);
-    // redoid.setLoopTransition(false);
+    colour.forEach(value => {
+      if (value < 0 || value > 255) {
+        isColorValid = false;
+      }
+    });
+
+    if (!isColorValid) {
+      return response
+        .status(422)
+        .json({
+          error: {
+            message: 'The provided colour is not valid',
+          },
+        });
+    }
+
+    if (!isMqttConnected) {
+      return response
+        .status(503)
+        .json({
+          error: {
+            message: 'The MQTT service is not available',
+          },
+        });
+    }
+
+    mqttClient.publish('dioder', JSON.stringify({ colour: colour }));
 
     response
       .status(204)
