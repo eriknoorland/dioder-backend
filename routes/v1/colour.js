@@ -7,11 +7,11 @@ const urlencode = bodyParser.urlencoded({ extended: false });
 const mqttClient  = mqtt.connect('mqtt://skynet.local:1881');
 
 let isMqttConnected = false;
- 
+
 mqttClient.on('connect', () => {
   isMqttConnected = true;
 });
- 
+
 mqttClient.on('message', (topic, message) => {
   // message is Buffer
   // console.log(message.toString());
@@ -23,7 +23,8 @@ router.use(bodyParser.json());
 
 router.route('/')
   .post((request, response) => {
-    const colour = JSON.parse(request.body.colour);
+    const colour = request.body.colour;
+
     let isColorValid = true;
 
     if (!Array.isArray(colour)) {
@@ -60,7 +61,7 @@ router.route('/')
         });
     }
 
-    mqttClient.publish('dioder', JSON.stringify({ colour: colour }));
+    mqttClient.publish('desk_led', JSON.stringify({ colour: colour }));
 
     response
       .status(204)
